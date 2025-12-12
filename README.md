@@ -98,6 +98,8 @@ mail.password=your-email-password
 mail.smtp.auth=true
 mail.smtp.ssl.enable=true
 
+```
+
 #### 4. 构建项目
 ```bash
 mvn clean package
