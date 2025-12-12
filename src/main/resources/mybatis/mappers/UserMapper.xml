@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.onlinebank.mapper.UserMapper">
+
+  <resultMap id="UserResult" type="com.example.onlinebank.model.User">
+    <id property="id" column="id"/>
+    <result property="email" column="email"/>
+    <result property="username" column="username"/>
+    <result property="password" column="password"/>
+    <result property="balance" column="balance"/>
+    <result property="avatar" column="avatar"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="isAdmin" column="is_admin"/>
+  </resultMap>
+
+  <select id="findByEmail" parameterType="string" resultMap="UserResult">
+    SELECT * FROM users WHERE email = #{email}
+  </select>
+
+  <select id="findById" parameterType="long" resultMap="UserResult">
+    SELECT * FROM users WHERE id = #{id}
+  </select>
+
+  <select id="findByIdentifier" parameterType="string" resultMap="UserResult">
+    SELECT *
+    FROM users
+    WHERE email = #{identifier} OR username = #{identifier}
+      LIMIT 1
+  </select>
+
+  <insert id="insert" parameterType="com.example.onlinebank.model.User"
+          useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO users (email, username, password, balance, avatar)
+    VALUES (#{email}, #{username}, #{password}, #{balance}, #{avatar})
+  </insert>
+
+
+  <update id="update" parameterType="com.example.onlinebank.model.User">
+    UPDATE users
+    <set>
+      <if test="username != null"> username = #{username}, </if>
+      <if test="password != null"> password = #{password}, </if>
+      <if test="avatar != null"> avatar = #{avatar}, </if>
+    </set>
+    WHERE id = #{id}
+  </update>
+
+
+
+  <update id="updateBalance">
+    UPDATE users
+    SET balance = balance + #{amount}
+    WHERE id = #{id}
+  </update>
+
+
+  <delete id="deleteById" parameterType="long">
+    DELETE FROM users WHERE id = #{id}
+  </delete>
+
+  <!-- 获取所有用户 -->
+  <select id="findAll" resultMap="UserResult">
+    SELECT * FROM users ORDER BY created_at DESC
+  </select>
+
+  <!-- 统计用户总数 -->
+  <select id="countAll" resultType="int">
+    SELECT COUNT(*) FROM users
+  </select>
+
+  <!-- 计算总余额 -->
+  <select id="sumAllBalance" resultType="java.math.BigDecimal">
+    SELECT COALESCE(SUM(balance), 0) FROM users
+  </select>
+
+</mapper>
