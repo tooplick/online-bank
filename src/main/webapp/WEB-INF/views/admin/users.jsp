@@ -64,47 +64,37 @@
                         transform: translateY(-2px);
                     }
 
-                    /* --- 极简分页样式优化 --- */
+                    /* --- 极简分页样式 --- */
                     .pagination-minimal .page-link {
                         border: none;
                         background-color: #f8f9fa;
                         color: #333;
-                        width: 42px;
-                        height: 42px;
+                        width: 40px;
+                        height: 40px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         border-radius: 10px !important;
-                        margin: 0 15px;
-                        transition: all 0.2s ease;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+                        margin: 0 10px;
+                        transition: all 0.2s;
                     }
 
                     .pagination-minimal .page-link:hover:not(.disabled) {
-                        background-color: #0d6efd;
-                        color: white;
-                        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+                        background-color: #e9ecef;
+                        color: #0d6efd;
                     }
 
                     .pagination-minimal .disabled .page-link {
                         background-color: transparent;
                         color: #dee2e6;
                         cursor: not-allowed;
-                        box-shadow: none;
                     }
 
                     .page-text-info {
-                        font-weight: 700;
-                        color: #212529;
-                        font-size: 1rem;
-                        min-width: 80px;
-                        text-align: center;
-                    }
-
-                    .page-text-divider {
-                        color: #adb5bd;
-                        margin: 0 4px;
-                        font-weight: normal;
+                        font-weight: 600;
+                        color: #495057;
+                        font-size: 0.95rem;
+                        letter-spacing: 1px;
                     }
                 </style>
             </head>
@@ -161,9 +151,7 @@
                                                 ¥
                                                 <fmt:formatNumber value="${u.balance}" pattern="0.00" />
                                             </td>
-                                            <td>
-                                                <span class="badge bg-success bg-opacity-10 text-success">正常</span>
-                                            </td>
+                                            <td><span class="badge bg-success bg-opacity-10 text-success">正常</span></td>
                                             <td class="text-end pe-3">
                                                 <button class="action-btn bg-success bg-opacity-10 text-success"
                                                     onclick="openBalanceModal(${u.id}, '${u.username}', 'add')">
@@ -197,8 +185,8 @@
                                     </li>
 
                                     <li class="page-item disabled">
-                                        <span class="page-text-info">
-                                            ${currentPage} <span class="page-text-divider">/</span> ${totalPages}
+                                        <span class="page-text-info px-3">
+                                            ${currentPage} <span class="text-muted mx-1">/</span> ${totalPages}
                                         </span>
                                     </li>
 
@@ -219,7 +207,7 @@
                     <div class="modal-dialog modal-dialog-centered modal-sm">
                         <div class="modal-content border-0 shadow">
                             <div class="modal-header border-0">
-                                <h5 class="modal-title fw-bold" id="modalTitle"></h5>
+                                <h5 class="modal-title fw-bold" id="modalTitle">调整余额</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
@@ -227,44 +215,38 @@
                                     <input type="hidden" name="userId" id="adjustUserId">
                                     <input type="hidden" name="operation" id="adjustOperation">
                                     <div class="mb-3">
-                                        <label class="form-label">金额 (CNY)</label>
+                                        <label class="form-label small text-muted">输入金额 (CNY)</label>
                                         <input type="number" class="form-control" name="amount" step="0.01" min="0.01"
-                                            required>
+                                            required placeholder="0.00">
                                     </div>
                                     <button type="button" class="btn w-100 fw-bold" id="submitBtn"
-                                        onclick="submitBalance()">
-                                        确认
-                                    </button>
+                                        onclick="submitBalance()">确认提交</button>
                                 </form>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:2000;">
+                <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3"
+                    style="z-index: 2000;">
                     <div id="toast" class="toast border-0 text-white" data-bs-delay="3000">
                         <div class="toast-body" id="toastMsg"></div>
                     </div>
                 </div>
 
                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
                 <script>
-                    // 初始化 Modal 和 Toast
                     const balanceModal = new bootstrap.Modal(document.getElementById('balanceModal'));
                     const toastEl = document.getElementById('toast');
                     const toastMsg = document.getElementById('toastMsg');
                     const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
 
-                    // 显示通知
                     function showToast(msg, type = 'success') {
-                        toastEl.className = 'toast border-0 text-white';
-                        toastEl.classList.add(type === 'error' ? 'bg-danger' : 'bg-success');
+                        toastEl.className = 'toast border-0 text-white ' + (type === 'error' ? 'bg-danger' : 'bg-success');
                         toastMsg.innerText = msg;
                         toast.show();
                     }
 
-                    // 打开余额调整弹窗
                     function openBalanceModal(id, name, type) {
                         document.getElementById('adjustUserId').value = id;
                         document.getElementById('adjustOperation').value = type;
@@ -281,30 +263,26 @@
                         balanceModal.show();
                     }
 
-                    // 提交余额调整
                     function submitBalance() {
-                        const fd = new FormData(document.getElementById('balanceForm'));
+                        const form = document.getElementById('balanceForm');
+                        const fd = new FormData(form);
+
                         fetch('${pageContext.request.contextPath}/admin/adjustBalance', {
                             method: 'POST',
                             body: fd
                         }).then(r => r.text()).then(res => {
                             if (res === 'success') {
                                 balanceModal.hide();
-                                showToast('余额调整成功');
-                                setTimeout(() => location.reload(), 1200);
+                                showToast('操作成功');
+                                setTimeout(() => location.reload(), 1000);
                             } else {
-                                showToast('操作失败：' + res, 'error');
+                                showToast('操作失败: ' + res, 'error');
                             }
-                        }).catch(err => {
-                            showToast('网络请求错误', 'error');
                         });
                     }
 
-                    // 删除用户逻辑
                     function deleteUser(id, name) {
-                        if (!confirm('确定要删除用户 [' + name + '] 吗？此操作不可撤销。')) {
-                            return;
-                        }
+                        if (!confirm('确定要删除用户 [' + name + '] 吗？此操作不可撤销。')) return;
 
                         const fd = new FormData();
                         fd.append('userId', id);
@@ -314,13 +292,11 @@
                             body: fd
                         }).then(r => r.text()).then(res => {
                             if (res === 'success') {
-                                showToast('用户 [' + name + '] 已删除');
-                                setTimeout(() => location.reload(), 1200);
+                                showToast('用户已删除');
+                                setTimeout(() => location.reload(), 1000);
                             } else {
-                                showToast('删除失败：' + res, 'error');
+                                showToast('删除失败', 'error');
                             }
-                        }).catch(err => {
-                            showToast('网络请求错误', 'error');
                         });
                     }
                 </script>
