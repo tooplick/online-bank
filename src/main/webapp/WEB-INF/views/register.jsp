@@ -1,230 +1,249 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>注册 - 网上银行</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
   <style>
-    /* 自定义样式：美化背景并居中注册卡片 */
-    body {
-      background-color: #e9ecef; /* 浅灰色背景 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    :root {
+      --primary-black: #121212;
+      --accent-blue: #0052ff;
+      --soft-gray: #f2f2f2;
+    }
+
+    body, html {
+      height: 100%;
       margin: 0;
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: #ffffff; /* 纯白背景 */
+      color: var(--primary-black);
     }
-    .register-card {
-      max-width: 500px;
-      width: 90%;
+
+    /* 全屏居中容器 */
+    .viewport-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 2rem;
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-      border-radius: 0.75rem;
-      /* 确保卡片在消息弹窗下层 */
+    }
+
+    .form-section {
+      width: 100%;
+      max-width: 360px; /* 窄版布局，更显精致 */
+    }
+
+    /* 标题设计：大字号、加粗、左对齐 */
+    .brand-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .brand-subtitle {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 2.5rem;
+    }
+
+    /* 输入框去边框化设计 */
+    .form-group-custom {
+      margin-bottom: 1.5rem;
       position: relative;
-      z-index: 1;
     }
-    .form-label {
+
+    .form-control-custom {
+      width: 100%;
+      border: none;
+      border-bottom: 2px solid var(--soft-gray);
+      border-radius: 0;
+      padding: 12px 0;
+      font-size: 1rem;
+      background: transparent;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-control-custom:focus {
+      outline: none;
+      border-bottom-color: var(--primary-black);
+    }
+
+    .form-label-custom {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* 验证码按钮：文字链接形式 */
+    .btn-send-text {
+      position: absolute;
+      right: 0;
+      bottom: 12px;
+      background: none;
+      border: none;
+      color: var(--accent-blue);
       font-weight: 500;
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0;
     }
-    /* 顶部消息弹窗样式 */
+
+    .btn-send-text:disabled {
+      color: #ccc;
+    }
+
+    /* 提交按钮：深色块状 */
+    .btn-submit {
+      width: 100%;
+      background: var(--primary-black);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 4px;
+      font-weight: 500;
+      margin-top: 1.5rem;
+      transition: opacity 0.2s;
+    }
+
+    .btn-submit:hover {
+      opacity: 0.85;
+    }
+
+    /* 顶部消息提示：简洁横条 */
     #top-alert-container {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      z-index: 1050; /* 确保在最上层 */
-      padding: 10px;
-      display: none; /* 默认隐藏 */
+      z-index: 9999;
+      display: none;
     }
-    #top-alert-container .alert {
-      margin-bottom: 0;
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+    .minimal-alert {
+      padding: 12px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 500;
     }
   </style>
-
-  <script>
-    // 计时器变量
-    var countdown = 60;
-    var timer = null;
-
-    // 显示顶部弹窗的函数
-    function showTopAlert(message, type = 'success', duration = 4000) {
-      var container = document.getElementById('top-alert-container');
-      var alertDiv = document.getElementById('top-alert');
-
-      // 设置消息内容和类型
-      alertDiv.className = 'alert alert-' + type + ' text-center';
-      alertDiv.innerHTML = message;
-
-      // 显示容器
-      container.style.display = 'block';
-
-      // 自动隐藏
-      setTimeout(function() {
-        container.style.display = 'none';
-      }, duration);
-    }
-
-    function sendCode() {
-      var emailInput = document.getElementById('email');
-      var email = emailInput.value.trim();
-
-      // 简单前端校验
-      if (!email || !/\S+@\S+\.\S/.test(email)) {
-        showTopAlert('请输入有效的邮箱地址', 'warning');
-        return;
-      }
-
-      // 禁用按钮并启动计时器
-      var sendBtn = document.getElementById('sendCodeBtn');
-      sendBtn.disabled = true;
-
-      // 检查并清理旧的计时器
-      if (timer) {
-        clearInterval(timer);
-        countdown = 60; // 重置计时，防止重复点击导致异常
-      }
-
-      timer = setInterval(function() {
-        countdown--;
-        if (countdown === 0) {
-          clearInterval(timer);
-          sendBtn.innerHTML = '发送验证码';
-          sendBtn.disabled = false;
-          countdown = 60; // 重置计时
-        } else {
-          sendBtn.innerHTML = countdown + 's 后重试';
-        }
-      }, 1000);
-
-      // 发送 AJAX 请求
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', '${pageContext.request.contextPath}/sendCode', true);
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            if (xhr.responseText.trim() === 'sent') {
-              // *** 验证码发送成功：使用顶部弹窗提示 ***
-              showTopAlert('✅ 验证码已发送，请检查您的邮箱（包括垃圾邮件箱）', 'success');
-            } else if (xhr.responseText.trim() === 'send_fail') {
-              // *** 验证码发送失败：使用顶部弹窗提示并恢复按钮 ***
-              showTopAlert('❌ 发送失败：邮件服务器错误或邮箱不存在', 'danger', 6000);
-              // 失败后立即停止计时器并恢复按钮
-              if(timer) clearInterval(timer);
-              sendBtn.innerHTML = '发送验证码';
-              sendBtn.disabled = false;
-              countdown = 60;
-            } else {
-              // 其他错误提示
-              showTopAlert('发送结果：' + xhr.responseText.trim(), 'warning');
-            }
-          } else {
-            // 请求失败提示
-            showTopAlert('请求失败，状态：' + xhr.status, 'danger');
-            // 失败后立即停止计时器并恢复按钮
-            if(timer) clearInterval(timer);
-            sendBtn.innerHTML = '发送验证码';
-            sendBtn.disabled = false;
-            countdown = 60;
-          }
-        }
-      };
-      xhr.send('email=' + encodeURIComponent(email) + '&purpose=register');
-    }
-  </script>
 </head>
 <body>
 
 <div id="top-alert-container">
-  <div id="top-alert" role="alert">
-  </div>
+  <div id="top-alert" class="minimal-alert"></div>
 </div>
 
-<div class="card register-card">
-  <div class="card-body">
-    <h3 class="card-title text-center mb-4 text-success">新用户注册</h3>
-    <p class="text-center text-muted">请填写以下信息以创建您的银行账户</p>
+<div class="viewport-wrapper">
+  <main class="form-section">
+    <header>
+      <h1 class="brand-title">注册</h1>
+    </header>
 
     <c:if test="${not empty error}">
-      <div class="alert alert-danger text-center" role="alert">
-          ${error}
-      </div>
+      <div class="text-danger small mb-3">${error}</div>
     </c:if>
 
     <form action="${pageContext.request.contextPath}/doRegister" method="post">
-
-      <div class="mb-3">
-        <label for="email" class="form-label">邮箱</label>
-        <div class="input-group">
-          <input type="email"
-                 class="form-control"
-                 id="email"
-                 name="email"
-                 placeholder="请输入常用邮箱"
-                 required/>
-          <button class="btn btn-outline-secondary"
-                  type="button"
-                  id="sendCodeBtn"
-                  onclick="sendCode();">
-            发送验证码
-          </button>
-        </div>
+      <div class="form-group-custom">
+        <label class="form-label-custom">邮箱地址</label>
+        <input type="email" class="form-control-custom" id="email" name="email" placeholder="example@mail.com" required>
+        <button type="button" class="btn-send-text" id="sendCodeBtn" onclick="sendCode()">获取验证码</button>
       </div>
 
-      <div class="mb-3">
-        <label for="code" class="form-label">验证码</label>
-        <input type="text"
-               class="form-control"
-               id="code"
-               name="code"
-               placeholder="请输入收到的6位验证码"
-               required/>
+      <div class="form-group-custom">
+        <label class="form-label-custom">验证码</label>
+        <input type="text" class="form-control-custom" id="code" name="code" placeholder="输入6位代码" required>
       </div>
 
-      <div class="mb-3">
-        <label for="username" class="form-label">用户名</label>
-        <input type="text"
-               class="form-control"
-               id="username"
-               name="username"
-               placeholder="账户昵称"
-               required/>
+      <div class="form-group-custom">
+        <label class="form-label-custom">用户名</label>
+        <input type="text" class="form-control-custom" id="username" name="username" placeholder="设置你的昵称" required>
       </div>
 
-      <div class="mb-4">
-        <label for="password" class="form-label">密码</label>
-        <input type="password"
-               class="form-control"
-               id="password"
-               name="password"
-               placeholder="设置登录密码"
-               required/>
+      <div class="form-group-custom">
+        <label class="form-label-custom">设置密码</label>
+        <input type="password" class="form-control-custom" id="password" name="password" placeholder="••••••" required>
       </div>
 
-      <div class="d-grid gap-2">
-        <button type="submit" class="btn btn-success btn-lg">立即注册</button>
-      </div>
+      <button type="submit" class="btn-submit">创建账户</button>
     </form>
 
-    <hr class="my-4">
-
-    <p class="text-center">
-      已有账户？<a href="${pageContext.request.contextPath}/login" class="text-decoration-none">去登录</a>
-    </p>
-  </div>
+    <footer class="mt-5 pt-4" style="border-top: 1px solid #eee;">
+      <p class="small text-muted">
+        已有账户？ <a href="${pageContext.request.contextPath}/login" class="text-dark fw-bold text-decoration-none">登录</a>
+      </p>
+    </footer>
+  </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+<script>
+  var countdown = 60, timer = null;
+
+  function showTopAlert(msg, type = 'dark') {
+    var wrap = document.getElementById('top-alert-container');
+    var alertDiv = document.getElementById('top-alert');
+
+    // 映射颜色
+    const bg = type === 'danger' ? '#ff3b30' : (type === 'warning' ? '#ffcc00' : '#121212');
+    alertDiv.style.backgroundColor = bg;
+    alertDiv.style.color = '#fff';
+    alertDiv.innerHTML = msg;
+
+    wrap.style.display = 'block';
+    setTimeout(() => { wrap.style.display = 'none'; }, 4000);
+  }
+
+  function sendCode() {
+    var email = document.getElementById('email').value.trim();
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      showTopAlert('请输入有效的邮箱', 'danger');
+      return;
+    }
+
+    var btn = document.getElementById('sendCodeBtn');
+    btn.disabled = true;
+
+    timer = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(timer);
+        btn.innerText = '获取验证码';
+        btn.disabled = false;
+        countdown = 60;
+      } else {
+        btn.innerText = countdown + 's';
+      }
+    }, 1000);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '${pageContext.request.contextPath}/sendCode', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var res = xhr.responseText.trim();
+        if (res === 'sent') showTopAlert('验证码已发送');
+        else if (res === 'email_registered') {
+          showTopAlert('此邮箱已被注册', 'danger');
+          clearInterval(timer); btn.innerText = '获取验证码'; btn.disabled = false;
+        } else {
+          showTopAlert('发送失败', 'danger');
+        }
+      }
+    };
+    xhr.send('email=' + encodeURIComponent(email) + '&purpose=register');
+  }
+</script>
+
 </body>
 </html>

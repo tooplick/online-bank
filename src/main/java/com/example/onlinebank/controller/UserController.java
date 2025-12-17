@@ -96,6 +96,10 @@ public class UserController {
         if (!StringUtils.hasText(email) || !StringUtils.hasText(purpose)) {
             return "error";
         }
+        // 判断邮箱是否已注册
+        if ("register".equals(purpose) && userService.findByEmail(email) != null) {
+            return "email_registered";
+        }
         String code = String.format("%06d", new Random().nextInt(999999));
         EmailCode ec = new EmailCode();
         ec.setEmail(email);

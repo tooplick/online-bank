@@ -1,334 +1,195 @@
-<%@ page session="true" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>用户管理 - 网上银行</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>用户管理控制台</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background-color: #1976d2;
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .admin-nav {
-            background-color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .nav-link {
-            margin-right: 20px;
-            text-decoration: none;
-            color: #1976d2;
-            font-weight: bold;
-        }
-
-        .nav-link:hover {
-            color: #0d47a1;
-        }
-
-        .user-table {
-            width: 100%;
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            table-layout: fixed;
-        }
-
-        .user-table th,
-        .user-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .user-table th {
-            background-color: #f8f9fa;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .user-table tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .btn {
-            padding: 6px 12px;
+        body { background-color: #f4f6f9; font-family: sans-serif; }
+        .main-card {
             border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-block;
-            margin: 2px;
-        }
-
-        .btn-primary { background-color: #1976d2; color: white; }
-        .btn-primary:hover { background-color: #0d47a1; }
-
-        .btn-danger { background-color: #d32f2f; color: white; }
-        .btn-danger:hover { background-color: #b71c1c; }
-
-        .btn-warning { background-color: #ff9800; color: white; }
-        .btn-warning:hover { background-color: #f57c00; }
-
-        .admin-badge {
-            background-color: #4caf50;
-            color: white;
-            padding: 2px 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
             border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
+            background: white;
+            margin-top: 20px;
+            min-height: 90vh;
         }
-
-        .balance-input {
-            width: 100px;
-            padding: 4px;
-            margin-right: 5px;
+        .table thead th {
+            border-bottom: 2px solid #f0f0f0;
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.85rem;
         }
-
-        .operation-select {
-            padding: 4px;
-            margin-right: 5px;
+        .table tbody td {
+            vertical-align: middle;
+            color: #333;
+            padding: 1rem 0.5rem;
         }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e9ecef;
+        }
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            line-height: 32px;
+            text-align: center;
+            border-radius: 6px;
+            margin: 0 2px;
+            border: none;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { transform: translateY(-2px); }
 
-        .actions-container {
+        /* --- 仅优化样式的极简分页 --- */
+        .pagination-minimal .page-link {
+            border: none;
+            background-color: #f8f9fa;
+            color: #333;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            border-radius: 10px !important;
+            margin: 0 10px;
+            transition: all 0.2s;
         }
-
-        .form-group {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+        .pagination-minimal .page-link:hover:not(.disabled) {
+            background-color: #e9ecef;
+            color: #0d6efd;
         }
-
-        .user-table td:last-child {
-            white-space: normal;
-            overflow: visible;
+        .pagination-minimal .disabled .page-link {
+            background-color: transparent;
+            color: #dee2e6;
+            cursor: not-allowed;
         }
-
-        @media (max-width: 1200px) {
-            .form-group {
-                flex-wrap: wrap;
-            }
+        .page-text-info {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
         }
-
-        /* 顶部弹窗（Toast） */
-        .toast {
-            position: fixed;
-            top: -60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #323232;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 6px;
-            opacity: 0;
-            transition: all 0.4s ease;
-            z-index: 9999;
-            font-size: 15px;
-        }
-
-        .toast.show {
-            top: 20px;
-            opacity: 1;
-        }
-
     </style>
-
-    <script>
-        /* 顶部弹窗函数 */
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.classList.add('show');
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
-        }
-
-        function confirmDelete(userId, username) {
-            if (confirm('确定要删除用户 "' + username + '" 吗？此操作不可恢复！')) {
-                deleteUser(userId);
-            }
-        }
-
-        function deleteUser(userId) {
-            fetch('${pageContext.request.contextPath}/admin/deleteUser?userId=' + userId, {
-                method: 'POST'
-            })
-                .then(response => response.text())
-                .then(result => {
-                    if (result === 'success') {
-                        showToast('用户删除成功！');
-                        setTimeout(() => location.reload(), 1200);
-                    } else if (result === 'cannot_delete_self') {
-                        showToast('不能删除自己！');
-                    } else if (result === 'not_admin') {
-                        showToast('没有管理员权限！');
-                    } else if (result === 'user_not_found') {
-                        showToast('用户不存在！');
-                    } else {
-                        showToast('删除失败: ' + result);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('删除失败，请稍后重试');
-                });
-        }
-
-        function adjustBalance(userId) {
-            const amount = document.getElementById('amount_' + userId).value;
-            const operation = document.getElementById('operation_' + userId).value;
-
-            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-                showToast('请输入有效的金额');
-                return;
-            }
-
-            fetch('${pageContext.request.contextPath}/admin/adjustBalance?userId=' + userId +
-                '&amount=' + amount + '&operation=' + operation, {
-                method: 'POST'
-            })
-                .then(response => response.text())
-                .then(result => {
-                    if (result === 'success') {
-                        showToast('余额调整成功！');
-                        setTimeout(() => location.reload(), 1200);
-                    } else if (result === 'insufficient_balance') {
-                        showToast('用户余额不足！');
-                    } else if (result === 'not_admin') {
-                        showToast('没有管理员权限！');
-                    } else {
-                        showToast('调整失败: ' + result);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showToast('调整失败，请稍后重试');
-                });
-        }
-
-    </script>
 </head>
 
 <body>
 
-<!-- 顶部弹窗 -->
-<div id="toast" class="toast"></div>
+<div class="container-fluid px-4">
+    <div class="main-card p-4">
 
-<div class="container">
-    <div class="header">
-        <h1>用户管理</h1>
-        <p>管理员: ${admin.username}</p>
-    </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-0 fw-bold">👥 用户管理</h4>
+                <small class="text-muted">共 ${totalUsers} 位用户</small>
+            </div>
+            <div>
+                <a href="${pageContext.request.contextPath}/admin/dashboard" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="fas fa-arrow-left"></i> 返回
+                </a>
+                <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
 
-    <div class="admin-nav">
-        <a href="${pageContext.request.contextPath}/admin/dashboard" class="nav-link">控制面板</a>
-        <a href="${pageContext.request.contextPath}/user/profile" class="nav-link">个人资料</a>
-        <a href="${pageContext.request.contextPath}/logout" class="nav-link">退出登录</a>
-    </div>
-
-    <c:if test="${not empty users}">
-        <table class="user-table">
-            <colgroup>
-                <col style="width: 60px">
-                <col style="width: 120px">
-                <col style="width: 200px">
-                <col style="width: 120px">
-                <col style="width: 180px">
-                <col style="width: 100px">
-                <col>
-            </colgroup>
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>用户名</th>
-                <th>邮箱</th>
-                <th>余额</th>
-                <th>注册时间</th>
-                <th>角色</th>
-                <th>操作</th>
-            </tr>
-            </thead>
-
-            <tbody>
-            <c:forEach var="user" items="${users}">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
                 <tr>
-                    <td>${user.id}</td>
-                    <td>${user.username}</td>
-                    <td>${user.email}</td>
-                    <td><strong style="color:#1976d2;">¥ ${user.balance}</strong></td>
-                    <td>${user.createdAt}</td>
-                    <td>
-                        <c:if test="${user.isAdmin}">
-                            <span class="admin-badge">管理员</span>
-                        </c:if>
-                        <c:if test="${not user.isAdmin}">
-                            普通用户
-                        </c:if>
-                    </td>
-                    <td>
-                        <div class="actions-container">
-                            <div class="form-group">
-                                <input type="number" id="amount_${user.id}" class="balance-input"
-                                       placeholder="金额" step="0.01" min="0.01">
-                                <select id="operation_${user.id}" class="operation-select">
-                                    <option value="add">增加</option>
-                                    <option value="subtract">减少</option>
-                                </select>
-                                <button class="btn btn-primary" onclick="adjustBalance(${user.id})">调整余额</button>
-                            </div>
-
-                            <c:if test="${user.id != admin.id}">
-                                <button class="btn btn-danger"
-                                        onclick="confirmDelete(${user.id}, '${user.username}')">
-                                    删除用户
+                    <th class="ps-3">ID</th>
+                    <th>用户</th>
+                    <th>邮箱</th>
+                    <th>余额</th>
+                    <th>状态</th>
+                    <th class="text-end pe-3">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <c:forEach items="${users}" var="u">
+                    <tr>
+                        <td class="ps-3 text-muted">#${u.id}</td>
+                        <td>
+                            <img class="user-avatar me-2"
+                                 src="${pageContext.request.contextPath}${empty u.avatar ? '/uploads/default_avatar.png' : u.avatar}"
+                                 onerror="this.src='${pageContext.request.contextPath}/uploads/default_avatar.png'">
+                            <span class="fw-medium">${u.username}</span>
+                            <c:if test="${u.isAdmin}">
+                                <span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem">ADMIN</span>
+                            </c:if>
+                        </td>
+                        <td class="text-secondary">${u.email}</td>
+                        <td class="fw-bold">
+                            ¥ <fmt:formatNumber value="${u.balance}" pattern="0.00"/>
+                        </td>
+                        <td><span class="badge bg-success bg-opacity-10 text-success">正常</span></td>
+                        <td class="text-end pe-3">
+                            <button class="action-btn bg-success bg-opacity-10 text-success" onclick="openBalanceModal(${u.id}, '${u.username}', 'add')">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="action-btn bg-warning bg-opacity-10 text-warning" onclick="openBalanceModal(${u.id}, '${u.username}', 'subtract')">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <c:if test="${!u.isAdmin}">
+                                <button class="action-btn bg-danger bg-opacity-10 text-danger" onclick="deleteUser(${u.id}, '${u.username}')">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
                             </c:if>
-                        </div>
-                    </td>
-                </tr>
-            </c:forEach>
-            </tbody>
-        </table>
-    </c:if>
-
-    <c:if test="${empty users}">
-        <div style="text-align:center;padding:40px;background:white;border-radius:8px;">
-            <p>暂无用户数据</p>
+                        </td>
+                    </tr>
+                </c:forEach>
+                </tbody>
+            </table>
         </div>
-    </c:if>
 
+        <div class="d-flex justify-content-center align-items-center mt-4">
+            <nav>
+                <ul class="pagination pagination-minimal align-items-center mb-0">
+                    <li class="page-item <c:if test='${currentPage == 1}'>disabled</c:if>">
+                        <a class="page-link" href="<c:if test='${currentPage > 1}'>${pageContext.request.contextPath}/admin/users?page=${currentPage - 1}</c:if>">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    <li class="page-item disabled">
+                        <span class="page-text-info px-3">
+                            ${currentPage} <span class="text-muted mx-1">/</span> ${totalPages}
+                        </span>
+                    </li>
+
+                    <li class="page-item <c:if test='${currentPage == totalPages || totalPages == 0}'>disabled</c:if>">
+                        <a class="page-link" href="<c:if test='${currentPage < totalPages}'>${pageContext.request.contextPath}/admin/users?page=${currentPage + 1}</c:if>">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
 </div>
+
+<div class="modal fade" id="balanceModal" tabindex="-1">...</div>
+<div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3">...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    /* 原有 JS 逻辑 */
+    function showToast(msg, type = 'success') { /* ... */ }
+    function openBalanceModal(id, name, type) { /* ... */ }
+    function submitBalance() { /* ... */ }
+    function deleteUser(id, name) { /* ... */ }
+</script>
 
 </body>
 </html>

@@ -28,4 +28,12 @@ public interface UserMapper {
     List<User> findAll();
     int countAll();
     BigDecimal sumAllBalance();
+
+    /**
+     * 分页查询用户
+     * @param offset 跳过的记录数
+     * @param limit 每页显示的记录数
+     * @return 用户列表
+     */
+    List<User> selectByPage(@Param("offset") int offset, @Param("limit") int limit);
 }

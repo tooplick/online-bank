@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserService {
@@ -135,6 +137,8 @@ public class UserService {
         return userMapper.deleteById(userId);
     }
 
+    // 在 UserService.java 中添加以下方法：
+
 // --- 管理员相关方法 ---
 
     /**
@@ -172,5 +176,30 @@ public class UserService {
     @Transactional
     public int deleteUserByAdmin(Long userId) {
         return userMapper.deleteById(userId);
+    }
+
+    // 在 UserService.java 中添加：
+
+    public Map<String, Object> getUsersWithPagination(int pageNum, int pageSize) {
+        // 1. 计算偏移量
+        int offset = (pageNum - 1) * pageSize;
+
+        // 2. 查询当前页数据
+        List<User> users = userMapper.selectByPage(offset, pageSize);
+
+        // 3. 查询总记录数 (利用现有的 countAll 方法)
+        int totalUsers = userMapper.countAll();
+
+        // 4. 计算总页数
+        int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+
+        // 5. 封装结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("users", users);
+        result.put("currentPage", pageNum);
+        result.put("totalPages", totalPages);
+        result.put("totalUsers", totalUsers);
+
+        return result;
     }
 }

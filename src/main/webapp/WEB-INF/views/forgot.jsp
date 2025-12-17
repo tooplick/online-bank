@@ -1,222 +1,262 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>忘记密码 - 网上银行</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous">
+  <title>重置密码 - 极简银行</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
-    /* 自定义样式：美化背景并居中卡片 */
-    body {
-      background-color: #f0f2f5; /* 柔和的浅灰色背景 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    :root {
+      --primary-black: #121212;
+      --accent-blue: #0052ff;
+      --muted-gray: #999;
+      --border-light: #eee;
+    }
+
+    body, html {
+      height: 100%;
       margin: 0;
+      font-family: 'Noto Sans SC', sans-serif;
+      background-color: #ffffff;
+      color: var(--primary-black);
     }
-    .forgot-card {
-      max-width: 450px;
-      width: 90%;
+
+    .viewport-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      border-radius: 0.75rem;
-      /* 确保卡片在消息弹窗下层 */
+    }
+
+    .form-section {
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .brand-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .brand-subtitle {
+      font-size: 0.9rem;
+      color: var(--muted-gray);
+      margin-bottom: 3rem;
+    }
+
+    /* 极简下划线输入框 */
+    .form-group-custom {
+      margin-bottom: 1.8rem;
       position: relative;
-      z-index: 1;
     }
-    /* 顶部消息弹窗样式 */
-    #top-alert-container {
-      position: fixed;
-      top: 0;
-      left: 0;
+
+    .form-label-custom {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted-gray);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .input-underlined {
+      width: 100%;
+      border: none;
+      border-bottom: 1px solid var(--border-light);
+      border-radius: 0;
+      padding: 10px 0;
+      font-size: 1rem;
+      background: transparent;
+      transition: border-color 0.3s ease;
+    }
+
+    .input-underlined:focus {
+      outline: none;
+      border-bottom-color: var(--primary-black);
+    }
+
+    /* 文字链接式发送按钮 */
+    .btn-send-text {
+      position: absolute;
       right: 0;
-      z-index: 1050; /* 确保在最上层 */
-      padding: 10px;
-      display: none; /* 默认隐藏 */
+      bottom: 10px;
+      background: none;
+      border: none;
+      color: var(--accent-blue);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0;
     }
-    #top-alert-container .alert {
-      margin-bottom: 0;
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+    .btn-send-text:disabled {
+      color: var(--muted-gray);
+      cursor: not-allowed;
+    }
+
+    /* 纯黑块状提交按钮 */
+    .btn-submit {
+      width: 100%;
+      background: var(--primary-black);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-top: 1rem;
+      transition: opacity 0.2s;
+    }
+
+    .btn-submit:hover {
+      opacity: 0.85;
+    }
+
+    /* 底部状态提示胶囊 */
+    #status-toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary-black);
+      color: white;
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-light);
     }
   </style>
-  <script>
-    // 计时器变量
-    var countdown = 60;
-    var timer = null;
-
-    // 显示顶部弹窗的函数
-    function showTopAlert(message, type = 'success', duration = 4000) {
-      var container = document.getElementById('top-alert-container');
-      var alertDiv = document.getElementById('top-alert');
-
-      // 设置消息内容和类型
-      alertDiv.className = 'alert alert-' + type + ' text-center';
-      alertDiv.innerHTML = message;
-
-      // 显示容器
-      container.style.display = 'block';
-
-      // 自动隐藏
-      setTimeout(function() {
-        container.style.display = 'none';
-      }, duration);
-    }
-
-
-    function sendReset() {
-      var emailInput = document.getElementById('email');
-      var email = emailInput.value.trim();
-      var sendBtn = document.getElementById('sendCodeBtn');
-
-      if (!email || !/\S+@\S+\.\S/.test(email)) {
-        showTopAlert('请输入有效的邮箱地址', 'warning');
-        return;
-      }
-
-      // 禁用按钮并启动计时器
-      sendBtn.disabled = true;
-      if (timer) clearInterval(timer);
-
-      timer = setInterval(function() {
-        countdown--;
-        if (countdown === 0) {
-          clearInterval(timer);
-          sendBtn.innerHTML = '发送验证码';
-          sendBtn.disabled = false;
-          countdown = 60; // 重置计时
-        } else {
-          sendBtn.innerHTML = countdown + 's 后重试';
-        }
-      }, 1000);
-
-      // 发送 AJAX 请求
-      var xhr = new XMLHttpRequest();
-      // 注意：这里使用了您原有的 URL /sendResetCode
-      xhr.open('POST', '${pageContext.request.contextPath}/sendResetCode', true);
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200) {
-            // *** 验证码发送成功：使用顶部弹窗提示 ***
-            showTopAlert('✅ 验证码已发送到您的邮箱，请查收！', 'success');
-          } else {
-            // *** 验证码发送失败：使用顶部弹窗提示并恢复按钮 ***
-            showTopAlert('❌ 发送请求失败，请检查邮箱地址或稍后重试。', 'danger', 6000);
-
-            // 失败后立即停止计时器并恢复按钮
-            if(timer) clearInterval(timer);
-            sendBtn.innerHTML = '发送验证码';
-            sendBtn.disabled = false;
-            countdown = 60;
-          }
-        }
-      };
-      xhr.send('email=' + encodeURIComponent(email));
-    }
-
-    // 新增：前端密码一致性检查
-    function checkPasswordMatch() {
-      var newPassword = document.getElementById('newPassword').value;
-      var confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-      if (newPassword !== confirmNewPassword) {
-        showTopAlert('⚠️ 两次输入的新密码不一致！请重新输入。', 'warning');
-        return false;
-      }
-      return true;
-    }
-  </script>
 </head>
 <body>
 
-<div id="top-alert-container">
-  <div id="top-alert" role="alert">
-  </div>
-</div>
+<div id="status-toast"></div>
 
-<div class="card forgot-card">
-  <div class="card-body">
-    <h3 class="card-title text-center mb-4 text-warning">忘记密码</h3>
-    <p class="text-center text-muted">通过邮箱验证码重置您的账户密码。</p>
-
-    <c:if test="${not empty error}">
-      <div class="alert alert-danger text-center" role="alert">
-          ${error}
-      </div>
-    </c:if>
+<div class="viewport-wrapper">
+  <main class="form-section">
+    <header>
+      <h1 class="brand-title">找回密码</h1>
+      <p class="brand-subtitle">验证您的身份并设置新的安全密码。</p>
+    </header>
 
     <form action="${pageContext.request.contextPath}/doReset" method="post" onsubmit="return checkPasswordMatch()">
 
-      <div class="mb-3">
-        <label for="email" class="form-label">注册邮箱</label>
-        <div class="input-group">
-          <input type="email"
-                 class="form-control"
-                 id="email"
-                 name="email"
-                 placeholder="请输入您的注册邮箱"
-                 required/>
-          <button class="btn btn-outline-warning"
-                  type="button"
-                  id="sendCodeBtn"
-                  onclick="sendReset();">
-            发送验证码
-          </button>
-        </div>
+      <div class="form-group-custom">
+        <label class="form-label-custom">注册邮箱</label>
+        <input type="email" class="input-underlined" id="email" name="email" placeholder="example@mail.com" required>
+        <button type="button" class="btn-send-text" id="sendCodeBtn" onclick="sendReset()">获取验证码</button>
       </div>
 
-      <div class="mb-3">
-        <label for="code" class="form-label">验证码</label>
-        <input type="text"
-               class="form-control"
-               id="code"
-               name="code"
-               placeholder="请输入收到的验证码"
-               required/>
+      <div class="form-group-custom">
+        <label class="form-label-custom">验证码</label>
+        <input type="text" class="input-underlined" id="code" name="code" placeholder="6位数字" required>
       </div>
 
-      <div class="mb-3">
-        <label for="newPassword" class="form-label">新密码</label>
-        <input type="password"
-               class="form-control"
-               id="newPassword"
-               name="newPassword"
-               placeholder="设置您的新密码"
-               required/>
+      <div class="form-group-custom">
+        <label class="form-label-custom">设置新密码</label>
+        <input type="password" class="input-underlined" id="newPassword" name="newPassword" placeholder="至少6位字符" required>
       </div>
 
-      <div class="mb-4">
-        <label for="confirmNewPassword" class="form-label">确认新密码</label>
-        <input type="password"
-               class="form-control"
-               id="confirmNewPassword"
-               name="confirmNewPassword"
-               placeholder="请再次输入新密码"
-               required/>
+      <div class="form-group-custom">
+        <label class="form-label-custom">确认新密码</label>
+        <input type="password" class="input-underlined" id="confirmNewPassword" name="confirmNewPassword" placeholder="再次输入新密码" required>
       </div>
 
-      <div class="d-grid gap-2">
-        <button type="submit" class="btn btn-warning btn-lg">重置密码</button>
-      </div>
+      <button type="submit" class="btn-submit">重置密码</button>
     </form>
 
-    <hr class="my-4">
-
-    <p class="text-center">
-      <a href="${pageContext.request.contextPath}/login" class="text-decoration-none">返回登录页</a>
-    </p>
-  </div>
+    <footer>
+      <p class="small">
+        想起密码了？ <a href="${pageContext.request.contextPath}/login" class="text-dark fw-bold text-decoration-none">立即登录</a>
+      </p>
+    </footer>
+  </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
+<script>
+  lucide.createIcons();
+
+  var countdown = 60, timer = null;
+
+  function showStatus(msg, isError = false) {
+    const toast = document.getElementById('status-toast');
+    toast.innerText = msg;
+    toast.style.backgroundColor = isError ? '#ff3b30' : '#121212';
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+  }
+
+  function sendReset() {
+    var email = document.getElementById('email').value.trim();
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      showStatus('请输入有效的邮箱', true);
+      return;
+    }
+
+    var btn = document.getElementById('sendCodeBtn');
+    btn.disabled = true;
+
+    timer = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(timer);
+        btn.innerText = '获取验证码';
+        btn.disabled = false;
+        countdown = 60;
+      } else {
+        btn.innerText = countdown + 's';
+      }
+    }, 1000);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '${pageContext.request.contextPath}/sendResetCode', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          showStatus('验证码已发送');
+        } else {
+          showStatus('发送失败，请稍后重试', true);
+          clearInterval(timer);
+          btn.innerText = '获取验证码';
+          btn.disabled = false;
+        }
+      }
+    };
+    xhr.send('email=' + encodeURIComponent(email));
+  }
+
+  function checkPasswordMatch() {
+    var p1 = document.getElementById('newPassword').value;
+    var p2 = document.getElementById('confirmNewPassword').value;
+    if (p1 !== p2) {
+      showStatus('两次输入的密码不一致', true);
+      return false;
+    }
+    return true;
+  }
+
+  // 后端错误注入提示
+  <c:if test="${not empty error}">
+  showStatus('${error}', true);
+  </c:if>
+</script>
+
 </body>
 </html>

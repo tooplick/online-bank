@@ -13,6 +13,7 @@
 
   <context:property-placeholder location="classpath:email.properties"/>
 
+  <!-- 数据库 DataSource: 修改下面的 url/username/password -->
   <!-- 注意：在 MySQL 中请确保数据库及表为 utf8mb4（推荐） -->
   <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
     <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>

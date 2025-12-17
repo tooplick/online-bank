@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class AdminController {
@@ -43,22 +44,33 @@ public class AdminController {
         return "admin/dashboard";
     }
 
-    // 用户管理页面
+    // 修改 AdminController.java 中的 manageUsers 方法：
+
     @GetMapping("/admin/users")
-    public String manageUsers(HttpSession session, Model model) {
+    public String manageUsers(@RequestParam(value = "page", defaultValue = "1") int page,
+                              HttpSession session,
+                              Model model) {
+
+        // ... (保留原有的管理员权限检查代码) ...
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) return "redirect:/login";
-
-        // 检查是否是管理员
         User admin = userService.findById(userId);
         if (admin == null || !Boolean.TRUE.equals(admin.getIsAdmin())) {
             return "redirect:/user/profile";
         }
 
-        // 获取所有用户列表
-        List<User> users = userService.getAllUsers();
-        model.addAttribute("users", users);
-        model.addAttribute("admin", admin);
+        // --- 分页逻辑开始 ---
+        int pageSize = 10; // 设定每页显示 10 条
+
+        // 防止页码小于1
+        if (page < 1) page = 1;
+
+        Map<String, Object> data = userService.getUsersWithPagination(page, pageSize);
+
+        model.addAttribute("users", data.get("users"));
+        model.addAttribute("currentPage", data.get("currentPage"));
+        model.addAttribute("totalPages", data.get("totalPages"));
+        model.addAttribute("admin", admin); // 保留管理员信息以便显示头像等
 
         return "admin/users";
     }
@@ -99,6 +111,7 @@ public class AdminController {
                 userService.withdraw(userId, adjustAmount);
                 return "success";
             } else if ("set".equals(operation)) {
+                // 直接设置余额
                 return "operation_not_supported";
             }
 
@@ -109,7 +122,7 @@ public class AdminController {
         }
     }
 
-    // 删除用户
+    // 删除用户（管理员可以删除任何用户）
     @PostMapping("/admin/deleteUser")
     @ResponseBody
     public String deleteUser(@RequestParam Long userId, HttpSession session) {
@@ -134,7 +147,7 @@ public class AdminController {
                 return "user_not_found";
             }
 
-            // 删除用户
+            // 删除用户（需要实现不带余额检查的删除方法）
             int result = userService.deleteUserByAdmin(userId);
             return result > 0 ? "success" : "delete_failed";
 
