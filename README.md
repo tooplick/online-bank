@@ -30,7 +30,6 @@
 ### 前端技术
 - JSP (Java Server Pages)
 - HTML/CSS/JavaScript
-- Bootstrap (可选)
 
 ### 数据库
 - MySQL 8.0+
@@ -49,7 +48,7 @@
 ## 快速开始
 
 ### 环境要求
-1. Java JDK 8或更高版本
+1. Java JDK 1.8
 2. MySQL 8.0+
 3. Apache Tomcat 9.x
 4. Maven 3.6+
