@@ -25,6 +25,10 @@ public interface UserMapper {
 
     int deleteById(Long userId);
 
+        /**
+        * 获取所有用户
+        * @return 用户列表
+        */
     List<User> findAll();
     int countAll();
     BigDecimal sumAllBalance();

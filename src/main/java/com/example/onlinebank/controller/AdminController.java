@@ -44,7 +44,7 @@ public class AdminController {
         return "admin/dashboard";
     }
 
-    // 修改 AdminController.java 中的 manageUsers 方法：
+    // 用户管理页面，带分页
 
     @GetMapping("/admin/users")
     public String manageUsers(@RequestParam(value = "page", defaultValue = "1") int page,

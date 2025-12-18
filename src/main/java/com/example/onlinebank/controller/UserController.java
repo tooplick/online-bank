@@ -90,6 +90,7 @@ public class UserController {
         return "register";
     }
 
+    // 发送注册验证码
     @PostMapping("/sendCode")
     @ResponseBody
     public String sendCode(@RequestParam String email, @RequestParam String purpose) {
@@ -307,6 +308,7 @@ public class UserController {
         return "sent";
     }
 
+    // 处理重置密码请求
     @PostMapping("/doReset")
     public String doReset(@RequestParam String email,
                           @RequestParam String code,

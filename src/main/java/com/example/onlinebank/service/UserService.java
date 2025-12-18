@@ -121,7 +121,7 @@ public class UserService {
         u.setPassword(newPassword);
         userMapper.update(u);
     }
-
+    
     @Transactional
     public int deleteUser(Long userId) {
         User user = userMapper.findById(userId);
@@ -137,7 +137,6 @@ public class UserService {
         return userMapper.deleteById(userId);
     }
 
-    // 在 UserService.java 中添加以下方法：
 
 // --- 管理员相关方法 ---
 
@@ -177,8 +176,12 @@ public class UserService {
     public int deleteUserByAdmin(Long userId) {
         return userMapper.deleteById(userId);
     }
-
-    // 在 UserService.java 中添加：
+    /**
+     * 分页获取用户列表
+     * @param pageNum 当前页码
+     * @param pageSize 每页记录数
+     * @return 包含用户列表和分页信息的Map
+     */
 
     public Map<String, Object> getUsersWithPagination(int pageNum, int pageSize) {
         // 1. 计算偏移量

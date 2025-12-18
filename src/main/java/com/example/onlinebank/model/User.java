@@ -7,7 +7,7 @@ public class User {
     private Long id;
     private String email;
     private String username;
-    private String password; // 明文存储（按你的要求）
+    private String password; 
     private BigDecimal balance;
     private String avatar;
     private Date createdAt;
@@ -44,7 +44,6 @@ public class User {
         return password;
     }
 
-    // 注意：这是明文密码保存（不安全，仅作作业演示）
     public void setPassword(String password) {
         this.password = password;
     }
