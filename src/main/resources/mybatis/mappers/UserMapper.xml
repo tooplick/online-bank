@@ -2,8 +2,14 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+  用户Mapper映射文件
+  定义SQL语句，映射User对象与users表的关系
+  namespace: 对应的Mapper接口类名
+-->
 <mapper namespace="com.example.onlinebank.mapper.UserMapper">
 
+  <!-- 结果映射：将users表的字段映射到User对象的属性 -->
   <resultMap id="UserResult" type="com.example.onlinebank.model.User">
     <id property="id" column="id"/>
     <result property="email" column="email"/>
@@ -15,14 +21,17 @@
     <result property="isAdmin" column="is_admin"/>
   </resultMap>
 
+  <!-- 根据邮箱查询用户 -->
   <select id="findByEmail" parameterType="string" resultMap="UserResult">
     SELECT * FROM users WHERE email = #{email}
   </select>
 
+  <!-- 根据用户ID查询用户 -->
   <select id="findById" parameterType="long" resultMap="UserResult">
     SELECT * FROM users WHERE id = #{id}
   </select>
 
+  <!-- 根据邮箱或用户名查询用户（用于登录） -->
   <select id="findByIdentifier" parameterType="string" resultMap="UserResult">
     SELECT *
     FROM users
@@ -30,13 +39,14 @@
       LIMIT 1
   </select>
 
+  <!-- 插入新用户 -->
   <insert id="insert" parameterType="com.example.onlinebank.model.User"
           useGeneratedKeys="true" keyProperty="id">
     INSERT INTO users (email, username, password, balance, avatar)
     VALUES (#{email}, #{username}, #{password}, #{balance}, #{avatar})
   </insert>
 
-
+  <!-- 更新用户信息（仅更新非空字段） -->
   <update id="update" parameterType="com.example.onlinebank.model.User">
     UPDATE users
     <set>
@@ -47,20 +57,19 @@
     WHERE id = #{id}
   </update>
 
-
-
+  <!-- 更新用户余额（用于充值、提现、转账） -->
   <update id="updateBalance">
     UPDATE users
     SET balance = balance + #{amount}
     WHERE id = #{id}
   </update>
 
-
+  <!-- 删除用户 -->
   <delete id="deleteById" parameterType="long">
     DELETE FROM users WHERE id = #{id}
   </delete>
 
-  <!-- 获取所有用户 -->
+  <!-- 获取所有用户列表 -->
   <select id="findAll" resultMap="UserResult">
     SELECT * FROM users ORDER BY created_at DESC
   </select>
@@ -70,9 +79,15 @@
     SELECT COUNT(*) FROM users
   </select>
 
-  <!-- 计算总余额 -->
+  <!-- 计算所有用户的总余额 -->
   <select id="sumAllBalance" resultType="java.math.BigDecimal">
     SELECT COALESCE(SUM(balance), 0) FROM users
+  </select>
+
+  <!-- 分页查询用户（按ID倒序） -->
+  <select id="selectByPage" resultType="com.example.onlinebank.model.User">
+    SELECT * FROM users
+    ORDER BY id DESC LIMIT #{offset}, #{limit}
   </select>
 
 </mapper>

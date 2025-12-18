@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Spring MVC配置文件
+  定义Spring MVC相关的配置：组件扫描、视图解析器、文件上传、静态资源映射等
+-->
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
@@ -11,24 +15,58 @@
         http://www.springframework.org/schema/mvc
         http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
+  <!-- ==================== 组件扫描 ==================== -->
+  <!-- 
+    扫描com.example.onlinebank包下的所有类，自动识别以下注解：
+    - @Controller: 控制器
+    - @Service: 业务逻辑服务
+    - @Repository: 数据访问组件
+    - @Component: 通用组件
+    - @Autowired: 自动注入
+  -->
   <context:component-scan base-package="com.example.onlinebank"/>
 
+  <!-- 启用Spring MVC注解驱动（支持@RequestMapping、@ResponseBody等） -->
   <mvc:annotation-driven/>
 
+  <!-- ==================== 视图解析器配置 ==================== -->
+  <!-- 
+    内部资源视图解析器：用于JSP视图的解析
+    - prefix: 视图文件的前缀（目录）
+    - suffix: 视图文件的后缀（文件扩展名）
+    
+    示例：
+    controller返回"login" → 解析为 /WEB-INF/views/login.jsp
+    controller返回"admin/dashboard" → 解析为 /WEB-INF/views/admin/dashboard.jsp
+  -->
   <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
     <property name="prefix" value="/WEB-INF/views/"/>
     <property name="suffix" value=".jsp"/>
   </bean>
 
+  <!-- 属性文件配置器（用于读取email.properties） -->
   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
     <property name="location" value="classpath:email.properties"/>
   </bean>
 
+  <!-- ==================== 文件上传配置 ==================== -->
+  <!-- 
+    CommonsMultipartResolver：处理multipart/form-data类型的请求（文件上传）
+    - maxUploadSize: 单个文件最大大小限制（字节），这里设为10MB
+    - defaultEncoding: 上传文件的默认编码
+  -->
   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <!-- 最大文件大小：10MB -->
     <property name="maxUploadSize" value="10485760"/>
+    <!-- 字符编码 -->
     <property name="defaultEncoding" value="UTF-8"/>
   </bean>
 
+  <!-- ==================== 静态资源映射 ==================== -->
+  <!-- 
+    映射/uploads/**请求到webapp/uploads/目录
+    这允许浏览器直接访问上传的头像和其他文件
+  -->
   <mvc:resources location="/uploads/" mapping="/uploads/**"/>
 
 </beans>

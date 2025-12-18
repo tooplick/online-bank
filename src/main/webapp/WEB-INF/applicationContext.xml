@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+  Spring应用上下文配置文件
+  定义数据库连接、MyBatis、事务管理、邮件服务等核心Bean
+  
+  配置说明：
+  1. 数据库连接：修改url、username、password以适配您的环境
+  2. MyBatis配置：扫描mappers包下的XML映射文件
+  3. 事务管理：使用DataSourceTransactionManager和@Transactional注解
+  4. 邮件服务：从email.properties读取SMTP配置
+-->
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:tx="http://www.springframework.org/schema/tx"
        xmlns:context="http://www.springframework.org/schema/context"
@@ -11,8 +21,17 @@
         http://www.springframework.org/schema/context
         http://www.springframework.org/schema/context/spring-context.xsd">
 
+  <!-- 加载email.properties配置文件中的属性 -->
   <context:property-placeholder location="classpath:email.properties"/>
 
+  <!-- ==================== 数据库连接配置 ==================== -->
+  <!-- 
+    数据源配置：使用DriverManagerDataSource
+    注意：需要根据实际环境修改url、username、password
+    - url: 数据库连接字符串（包含字符集、时区、SSL等设置）
+    - username: 数据库用户名（示例：root）
+    - password: 数据库密码（示例：root）
+  -->
   <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
     <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
     <!-- 在 JDBC URL 中明确指定字符集与时区 -->
@@ -21,9 +40,18 @@
     <property name="password" value="root"/>
   </bean>
 
+  <!-- ==================== MyBatis配置 ==================== -->
+  <!-- 
+    SqlSessionFactory配置：
+    - dataSource: 使用上面定义的数据源
+    - typeAliasesPackage: 类型别名扫描包（会自动注册该包下的所有类）
+    - mapperLocations: MyBatis映射文件位置
+  -->
   <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
     <property name="dataSource" ref="dataSource"/>
+    <!-- 类型别名扫描包 -->
     <property name="typeAliasesPackage" value="com.example.onlinebank.model"/>
+    <!-- Mapper映射文件位置 -->
     <property name="mapperLocations">
       <list>
         <value>classpath:mybatis/mappers/*.xml</value>
@@ -31,25 +59,58 @@
     </property>
   </bean>
 
+  <!-- 
+    Mapper扫描器配置：
+    自动扫描basePackage包下的所有Mapper接口，并创建代理实例
+    这样就可以在Service中通过@Autowired直接注入Mapper
+  -->
   <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
     <property name="basePackage" value="com.example.onlinebank.mapper"/>
   </bean>
 
+  <!-- ==================== 事务管理配置 ==================== -->
+  <!-- 
+    数据源事务管理器配置：
+    - 负责@Transactional注解的事务处理
+    - 在金融操作中确保数据一致性
+  -->
   <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
     <property name="dataSource" ref="dataSource"/>
   </bean>
+  
+  <!-- 启用@Transactional注解支持 -->
   <tx:annotation-driven transaction-manager="transactionManager"/>
 
-  <!-- JavaMailSender 配置（属性值来自 email.properties） -->
+  <!-- ==================== 邮件服务配置 ==================== -->
+  <!-- 
+    JavaMailSender配置：用于发送验证码邮件
+    属性值来自email.properties文件中的配置
+    
+    使用示例（在controller中）：
+    SimpleMailMessage msg = new SimpleMailMessage();
+    msg.setTo(email);
+    msg.setFrom(mailSender.getUsername());
+    msg.setSubject("验证码");
+    msg.setText("您的验证码是：123456");
+    mailSender.send(msg);
+  -->
   <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+    <!-- 邮件服务器地址（从email.properties读取） -->
     <property name="host" value="${mail.smtp.host}"/>
+    <!-- 邮件服务器端口（从email.properties读取） -->
     <property name="port" value="${mail.smtp.port}"/>
+    <!-- 发送者邮箱账号（从email.properties读取） -->
     <property name="username" value="${mail.username}"/>
+    <!-- 邮箱授权码或密码（从email.properties读取） -->
     <property name="password" value="${mail.password}"/>
+    <!-- SMTP协议属性 -->
     <property name="javaMailProperties">
       <props>
+        <!-- 是否启用身份验证 -->
         <prop key="mail.smtp.auth">${mail.smtp.auth}</prop>
+        <!-- 是否启用SSL加密 -->
         <prop key="mail.smtp.ssl.enable">${mail.smtp.ssl.enable}</prop>
+        <!-- 连接超时时间（毫秒） -->
         <prop key="mail.smtp.timeout">25000</prop>
       </props>
     </property>

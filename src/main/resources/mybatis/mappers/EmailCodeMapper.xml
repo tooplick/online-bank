@@ -2,8 +2,14 @@
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+  邮箱验证码Mapper映射文件
+  定义SQL语句，映射EmailCode对象与email_codes表的关系
+  namespace: 对应的Mapper接口类名
+-->
 <mapper namespace="com.example.onlinebank.mapper.EmailCodeMapper">
 
+  <!-- 结果映射：将email_codes表的字段映射到EmailCode对象的属性 -->
   <resultMap id="EmailCodeResult" type="com.example.onlinebank.model.EmailCode">
     <id property="id" column="id"/>
     <result property="email" column="email"/>
@@ -12,11 +18,13 @@
     <result property="createdAt" column="created_at"/>
   </resultMap>
 
+  <!-- 插入新验证码 -->
   <insert id="insert" parameterType="com.example.onlinebank.model.EmailCode" useGeneratedKeys="true" keyProperty="id">
     INSERT INTO email_codes (email, code, purpose)
     VALUES (#{email}, #{code}, #{purpose})
   </insert>
 
+  <!-- 根据邮箱和用途查询验证码（最新的5条） -->
   <select id="findByEmailAndPurpose" parameterType="map" resultMap="EmailCodeResult">
     SELECT id, email, code, purpose, created_at
     FROM email_codes
@@ -25,10 +33,12 @@
     LIMIT 5
   </select>
 
+  <!-- 根据验证码ID删除 -->
   <delete id="deleteById" parameterType="long">
     DELETE FROM email_codes WHERE id = #{id}
   </delete>
 
+  <!-- 根据邮箱和用途删除所有验证码（防止重复使用） -->
   <delete id="deleteByEmailAndPurpose" parameterType="map">
     DELETE FROM email_codes WHERE email = #{email} AND purpose = #{purpose}
   </delete>
